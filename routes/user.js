@@ -7,7 +7,11 @@ const {
   userPatch,
   userDelete,
 } = require("../controllers/user");
-const { isValidRole } = require("../helpers/db-validators");
+const {
+  isValidRole,
+  emailExists,
+  existsUserById,
+} = require("../helpers/db-validators");
 const { validateFields } = require("../middlewares/validate-fields");
 
 const router = Router();
@@ -18,12 +22,22 @@ router.put("/", (_, res) => {
   res.status(404).json({ message: "Not valid api route" });
 });
 
-router.put("/:id", userPut);
+router.put(
+  "/:id",
+  [
+    check("id", "Not a valid ID").isMongoId(),
+    check("id").custom(existsUserById),
+    check("role").custom(isValidRole),
+    validateFields,
+  ],
+  userPut
+);
 
 router.post(
   "/",
   [
     check("email", "Email is required").isEmail(),
+    check("email").custom(emailExists),
     check("name", "Names is required").notEmpty(),
     check("password", "Password is required and over 6 characters").isLength({
       min: 6,

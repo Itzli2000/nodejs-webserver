@@ -10,11 +10,6 @@ const userGet = (req = request, res = response) => {
 const userPost = async (req = request, res = response) => {
   const { name, email, password, role } = req.body;
   const user = new User({ name, email, password, role });
-  // Validate if email exists
-  const emailExists = await User.findOne({ email });
-  if (emailExists) {
-    return res.status(400).json({ message: `Email ${email} already exists` });
-  }
   // Encrypt password
   const salt = bcrypt.genSaltSync();
   user.password = bcrypt.hashSync(password, salt);
@@ -23,9 +18,16 @@ const userPost = async (req = request, res = response) => {
   res.json({ user });
 };
 
-const userPut = (req = request, res = response) => {
+const userPut = async (req = request, res = response) => {
   const id = req.params.id;
-  res.json({ message: "Put Api - Controler", id });
+  const { password, google, _id, ...rest } = req.body;
+  // TODO validate ID against DB
+  if (password) {
+    const salt = bcrypt.genSaltSync();
+    rest.password = bcrypt.hashSync(password, salt);
+  }
+  const user = await User.findByIdAndUpdate(id, rest);
+  res.json({ user });
 };
 
 const userPatch = (req = request, res = response) => {
