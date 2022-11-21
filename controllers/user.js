@@ -2,9 +2,17 @@ const { request, response } = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/user");
 
-const userGet = (req = request, res = response) => {
-  const { q, name = "No name", apikey } = req.query;
-  res.json({ message: "Get Api - Controler", q, name, apikey });
+const userGet = async (req = request, res = response) => {
+  const { limit = 5, from = 0 } = req.query;
+  const query = { state: true };
+
+  const [total, users] = await Promise.all([
+    User.countDocuments(query),
+    User.find(query)
+      .limit(Number(limit)) // limit amount of results
+      .skip(Number(from)), // Return results starting from
+  ]);
+  res.json({ total, users });
 };
 
 const userPost = async (req = request, res = response) => {
@@ -27,7 +35,7 @@ const userPut = async (req = request, res = response) => {
     rest.password = bcrypt.hashSync(password, salt);
   }
   const user = await User.findByIdAndUpdate(id, rest);
-  res.json({ user });
+  res.json(user);
 };
 
 const userPatch = (req = request, res = response) => {
