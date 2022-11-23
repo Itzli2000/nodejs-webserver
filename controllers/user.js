@@ -42,8 +42,12 @@ const userPatch = (req = request, res = response) => {
   res.json({ message: "Patch Api - Controler" });
 };
 
-const userDelete = (req = request, res = response) => {
-  res.json({ message: "Delete Api - Controler" });
+const userDelete = async (req = request, res = response) => {
+  const { id } = req.params;
+  // Delete user from DB
+  // const user = await User.findByIdAndDelete(id); // Not recommended
+  const user = await User.findByIdAndUpdate(id, { state: false });
+  res.json(user);
 };
 
 module.exports = {
